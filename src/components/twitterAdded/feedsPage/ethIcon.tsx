@@ -17,7 +17,7 @@ export const FriendPrice: FC<FriendPriceProps> = ({ twitterUsername }) => {
       console.log('batchUserInfo', result);
       setUserInfo(result?.data?.items?.[0]);
     },
-    () => {}
+    () => undefined
   );
 
   useEffect(() => {
