@@ -16,6 +16,7 @@ import useProfileModal from '../../store/useProfileModal';
 import useGlobalUserStore from '../../store/useGlobalUserStore';
 import useShareStore from '../../store/useShareStore';
 import useTweetStore from '../../store/useTweetStore';
+import dayjs from 'dayjs';
 
 import BuyModal from './BuyModal';
 import SellModal from './SellModal';
