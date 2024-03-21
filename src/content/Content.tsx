@@ -1,4 +1,7 @@
-import React, { ReactElement } from 'react';
+import React, { ReactElement, useEffect } from 'react';
+
+import Toaster from '../components/Toaster';
+import http from '../service/request';
 
 import PersistentDrawerRight from './drawer';
 
@@ -13,6 +16,7 @@ const Content = (): ReactElement => {
       }}
     >
       <PersistentDrawerRight />
+      <Toaster />
     </div>
   );
 };

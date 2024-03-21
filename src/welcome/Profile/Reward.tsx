@@ -1,16 +1,21 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import TabContext from '@mui/lab/TabContext';
 import TabList from '@mui/lab/TabList';
 import TabPanel from '@mui/lab/TabPanel';
 import { Divider } from '@mui/material';
 import Box from '@mui/material/Box';
 import Tab from '@mui/material/Tab';
+import { useAsyncEffect } from 'ahooks';
+import dayjs from 'dayjs';
 
+import { NumberDisplayer } from '../../components/NumberDisplayer';
+import { useTweetList } from '../../service/tweet';
 import useProfileModal from '../../store/useProfileModal';
+import useTweetStore from '../../store/useTweetStore';
+import useUserStore from '../../store/useUserStore';
 
 import Claim from './Claim';
 import History from './History';
-import { reward } from './mock';
 
 const Icon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="9" height="12" viewBox="0 0 9 12" fill="none">
@@ -33,36 +38,74 @@ const Icon = () => (
 const Reward = () => {
   const { openProfile } = useProfileModal((state) => ({ ...state }));
   const list = Array(7).fill('');
+  const [priceMap, setPriceMap] = useState<Record<string, any>>([]);
   const [value, setValue] = React.useState('1');
+  const { run: getTweet } = useTweetList();
+  const { tweetList, tweetRewardTotalRewardAmount } = useTweetStore((state) => ({ ...state }));
+  const { userInfo } = useUserStore((state) => ({ ...state }));
+  const currentIndex = tweetList
+    ? tweetList?.findIndex((item) => item.author?.id === userInfo?.id)
+    : -1;
+
+  const fetchMap: Record<any, any> = {
+    1: getTweet,
+    2: () => {
+      console.log();
+    },
+  };
 
   const handleChange = (event: React.SyntheticEvent, newValue: string) => {
     setValue(newValue);
+    fetchMap[newValue]();
   };
+
+  useEffect(() => {
+    if (value === '1') {
+      getTweet();
+    }
+  }, []);
+
+  const getPrice = async () => {
+    const res = await fetch('https://api.binance.com/api/v3/ticker/price');
+
+    if (res.ok) {
+      return res.json();
+    }
+  };
+
+  useAsyncEffect(async () => {
+    const list = await getPrice();
+
+    setPriceMap(list);
+  }, []);
 
   return (
     <>
       <div className="mx-6 flex items-center justify-between">
         <div className="flex space-x-[34px]">
           <div className="flex flex-col items-center space-y-1">
-            <div className="flex space-x-1 items-center">
+            <div className="flex items-center space-x-1">
               <Icon />
-              <span className="text-xs text-[#0F1419] font-medium">2</span>
+              <span className="text-xs font-medium text-[#0F1419]">12.4</span>
             </div>
-            <span className="text-[#919099] text-[15px] font-medium">Pool</span>
+            <span className="text-[15px] font-medium text-[#919099]">Pool</span>
           </div>
 
           <div className="flex flex-col items-center space-y-1">
-            <div className="flex space-x-1 items-center">
+            <div className="flex items-center space-x-1">
               <Icon />
-              <span className="text-xs text-[#0F1419] font-medium">0.4</span>
+              <NumberDisplayer
+                className="text-xs font-medium text-[#0F1419]"
+                text={tweetRewardTotalRewardAmount}
+              />
             </div>
-            <span className="text-[#919099] text-[15px] font-medium">Your Reward</span>
+            <span className="text-[15px] font-medium text-[#919099]">Your Reward</span>
           </div>
         </div>
 
         <div className="flex items-center space-x-[14px]">
-          <Claim />
-          <History />
+          <Claim price={priceMap.find((item: any) => item.symbol === 'ETHUSDT')?.price} />
+          <History price={priceMap.find((item: any) => item.symbol === 'ETHUSDT')?.price} />
         </div>
       </div>
 
@@ -121,34 +164,37 @@ const Reward = () => {
               padding: 0,
             }}
           >
-            <ul className="py-[22px] border-t border-t-[#EBEEF0]">
-              {reward.map((item, i) => (
-                <li key={i} className="space-y-2 mb-4">
+            <ul className="border-t border-t-[#EBEEF0] py-[22px]">
+              {tweetList?.map((item, i) => (
+                <li key={i} className="mb-4 space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-[6px]">
                       <img
-                        onClick={openProfile}
-                        src={item.avatar}
+                        onClick={() => {
+                          console.log(item.author);
+                          openProfile(item.author);
+                        }}
+                        src={item.author?.avatar}
                         alt=""
-                        className="w-[44px] rounded-full cursor-pointer"
+                        className="w-[44px] cursor-pointer rounded-full"
                       />
                       <div className="flex flex-col space-y-[2px]">
                         <span className="text-sm font-bold" style={{ fontVariant: 'small-caps' }}>
-                          {item.nickname}
+                          {item.author?.username}
                         </span>
                         <span
                           className="text-xs text-[#919099]"
                           style={{ fontVariant: 'small-caps' }}
                         >
-                          {item.time}
+                          {dayjs(item.createdAt).locale('en').format('MMM DD YYYY, HH:mm')}
                         </span>
                       </div>
                     </div>
 
-                    <span className="text-sm font-medium">#{i + 1}</span>
+                    <span className="text-sm font-medium">#{item.rank}</span>
                   </div>
 
-                  <p className="text-black text-xs leading-[20px]">{item.text}</p>
+                  <p className="text-xs leading-[20px] text-black">{item.text}</p>
 
                   <Divider
                     sx={{
@@ -167,42 +213,48 @@ const Reward = () => {
               padding: 0,
             }}
           >
-            <ul className="py-[22px] border-t border-t-[#EBEEF0]">
-              <li key={0} className="space-y-2 mb-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-[6px]">
-                    <img
-                      onClick={openProfile}
-                      src={reward[0].avatar}
-                      alt=""
-                      className="w-[44px] rounded-full cursor-pointer"
-                    />
-                    <div className="flex flex-col space-y-[2px]">
-                      <span className="text-sm font-bold" style={{ fontVariant: 'small-caps' }}>
-                        {reward[0].nickname}
-                      </span>
-                      <span
-                        className="text-xs text-[#919099]"
-                        style={{ fontVariant: 'small-caps' }}
-                      >
-                        {reward[0].time}
-                      </span>
+            <ul className="border-t border-t-[#EBEEF0] py-[22px]">
+              {currentIndex >= 0 ? (
+                <li key={0} className="mb-4 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-[6px]">
+                      <img
+                        onClick={() => openProfile(tweetList?.[currentIndex].author)}
+                        src={tweetList?.[currentIndex].author?.avatar}
+                        alt=""
+                        className="w-[44px] cursor-pointer rounded-full"
+                      />
+                      <div className="flex flex-col space-y-[2px]">
+                        <span className="text-sm font-bold" style={{ fontVariant: 'small-caps' }}>
+                          {tweetList?.[currentIndex].author?.username}
+                        </span>
+                        <span
+                          className="text-xs text-[#919099]"
+                          style={{ fontVariant: 'small-caps' }}
+                        >
+                          {dayjs(tweetList?.[currentIndex].createdAt)
+                            .locale('en')
+                            .format('MMM DD YYYY, HH:mm')}
+                        </span>
+                      </div>
                     </div>
+
+                    <span className="text-sm font-medium">#{tweetList?.[currentIndex].rank}</span>
                   </div>
 
-                  <span className="text-sm font-medium">#{reward[0].rank}</span>
-                </div>
+                  <p className="text-xs leading-[20px] text-black">
+                    {tweetList?.[currentIndex].text}
+                  </p>
 
-                <p className="text-black text-xs leading-[20px]">{reward[0].text}</p>
-
-                <Divider
-                  sx={{
-                    marginTop: 3,
-                    width: '100%',
-                    borderColor: '#EBEEF0',
-                  }}
-                />
-              </li>
+                  <Divider
+                    sx={{
+                      marginTop: 3,
+                      width: '100%',
+                      borderColor: '#EBEEF0',
+                    }}
+                  />
+                </li>
+              ) : null}
             </ul>
           </TabPanel>
         </TabContext>

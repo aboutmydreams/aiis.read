@@ -1,5 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+
+import { NumberDisplayer } from '../../components/NumberDisplayer';
+import useAccount from '../../hooks/useAccount';
+import { useUserInfo } from '../../service/user';
+import useProfileModal from '../../store/useProfileModal';
 
 import Community from './Community';
 import Explore from './Explore';
@@ -7,6 +12,9 @@ import Reward from './Reward';
 
 const Profile = (props: { handleButtonClick?: () => void }) => {
   const [key, setKey] = useState('explore');
+  const { run: getUserInfo } = useUserInfo();
+  const { userInfo } = useAccount();
+  const { openProfile } = useProfileModal((state) => ({ ...state }));
 
   const tapMap = [
     {
@@ -29,10 +37,14 @@ const Profile = (props: { handleButtonClick?: () => void }) => {
     reward: <Reward />,
   };
 
+  useEffect(() => {
+    getUserInfo();
+  }, []);
+
   return (
-    <div className="flex flex-col w-[433px] max-w-[433px] min-h-screen">
-      <div className="px-[15px] py-[10px] flex items-center justify-between">
-        <div className="space-x-2 flex items-center">
+    <div className="flex min-h-screen w-[433px] max-w-[433px] flex-col">
+      <div className="flex items-center justify-between px-[15px] py-[10px]">
+        <div className="flex items-center space-x-2">
           <img
             src="https://cdn.oasiscircle.xyz/circle/980181F4-9AF2-4CA3-82E7-B713B80A2D17.1706801989931.0xA0B5B5"
             alt="logo"
@@ -40,7 +52,10 @@ const Profile = (props: { handleButtonClick?: () => void }) => {
           />
         </div>
 
-        <div className="flex items-center text-[15px] text-[#919099]">
+        <div
+          className="flex items-center text-[15px] text-[#919099] hover:cursor-pointer"
+          onClick={() => openProfile(userInfo)}
+        >
           <span className="mr-1">Holding:</span>
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -69,26 +84,26 @@ const Profile = (props: { handleButtonClick?: () => void }) => {
               </clipPath>
             </defs>
           </svg>
-          <span className="ml-1">0.02</span>
+          <NumberDisplayer className="ml-1" text={userInfo?.holdValue} />
         </div>
 
         <div
           onClick={() => props.handleButtonClick?.()}
-          className="px-4 py-1 flex items-center justify-center rounded-full border border-black text-[15px] font-medium cursor-pointer"
+          className="flex cursor-pointer items-center justify-center rounded-full border border-black px-4 py-1 text-[15px] font-medium"
         >
           Wallet
         </div>
       </div>
 
-      <div className="my-[14px] mx-4 py-[10px] px-[14px] rounded-full bg-[#F8F4F0] flex items-center justify-between">
+      <div className="my-[14px] mx-4 flex items-center justify-between rounded-full bg-[#F8F4F0] py-[10px] px-[14px]">
         {tapMap.map((item, i) => (
           <div
             key={i}
             onClick={item.onClick}
-            className={`w-[100px] capitalize flex items-center justify-center text-[15px] font-semibold ${
+            className={`flex w-[100px] items-center justify-center text-[15px] font-semibold capitalize ${
               key === item.title
-                ? 'px-[18px] py-[10px] bg-[#2C2A2A] rounded-full text-[#FAFAFA]'
-                : 'text-[#0F1419] cursor-pointer'
+                ? 'rounded-full bg-[#2C2A2A] px-[18px] py-[10px] text-[#FAFAFA]'
+                : 'cursor-pointer text-[#0F1419]'
             }`}
           >
             {item.title}

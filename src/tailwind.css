@@ -4,7 +4,11 @@
 
 @font-face {
   font-family: 'SF Pro Display';
-  src: url('https://cdn-xfans.buidlerdao.xyz/SF-Pro-Display-Regular.otf');
+
+  /* src: url('https://cdn-xfans.buidlerdao.xyz/SF-Pro-Display-Regular.otf'); */
+
+  /* https://cloudconvert.com/otf-to-woff2 */
+  src: url('../public/SF-Pro-Display-Regular.woff2');
 
   /* src: url('./welcome/assets/SF-Pro-Display-Thin.otf'); */
 
@@ -15,4 +19,51 @@ html,
 body {
   font-family: 'SF Pro Display', sans-serif;
   font-size: 16px !important;
+}
+
+/* For Webkit-based browsers (Chrome, Safari and Opera) */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* For IE, Edge and Firefox */
+.scrollbar-hide {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+/* styles.css */
+.xfans-left-icon {
+  transition: transform 0.3s ease;
+}
+
+.xfans-basic-button:hover .xfans-left-icon {
+  transform: translateX(-4px);
+}
+
+.xfans-scrollbar {
+  /* twiter body 上有个 scrollbar-color 这里重置下; */
+  scrollbar-color: initial;
+}
+
+/* width */
+.xfans-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+/* Track */
+.xfans-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 8px;
+}
+
+/* Handle */
+.xfans-scrollbar::-webkit-scrollbar-thumb {
+  background: #eaecf0;
+  border-radius: 8px;
+}
+
+/* Handle on hover */
+.xfans-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #eaecf0;
 }
